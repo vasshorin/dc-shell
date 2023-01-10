@@ -19,5 +19,6 @@
  * @param err the error object.
  * @param command the command information.
  */
- void builtin_cd(const struct dc_posix_env *env, struct dc_error *err, struct command *command);
+ void builtin_cd(const struct dc_env *env, struct dc_error *err, struct command *command);
+
 #endif //DC_SHELL_BUILTINS_H

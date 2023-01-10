@@ -5,6 +5,8 @@
 #ifndef DC_SHELL_SHELL_H
 #define DC_SHELL_SHELL_H
 #include <dc_fsm/fsm.h>
+#include "dc_env/env.h"
+#include "dc_error/error.h"
 
 enum shell_state
 {
@@ -24,6 +26,6 @@ enum shell_state
  *
  * @param env the posix environment
  */
-int run_shell(const struct dc_posix_env *env, struct dc_error *err);
+int run_shell(const struct dc_env *env, struct dc_error *err);
 
 #endif //DC_SHELL_SHELL_H

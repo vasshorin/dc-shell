@@ -5,6 +5,8 @@
 #ifndef DC_SHELL_SHELL_IMPL_H
 #define DC_SHELL_SHELL_IMPL_H
 
+#include "dc_env/env.h"
+#include "dc_error/error.h"
 
 /**
  * Set up the inital state:
@@ -20,12 +22,12 @@
  * @param arg the current struct state
  * @return READ_COMMANDS or INIT_ERROR
  */
- int init_state(const struct dc_posix_env *env, struct dc_error *err, void *arg);
+ int init_state(const struct dc_env *env, struct dc_error *err, void *arg);
 
  /**
   * Free any dynamically allocated memory in the state.
   *
   * @param env the posix environment.
   */
- void free_state(const struct dc_posix_env *env);
+ void free_state(const struct dc_env *env);
 #endif //DC_SHELL_SHELL_IMPL_H
