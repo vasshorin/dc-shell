@@ -1,3 +1,19 @@
-//
-// Created by Vasily Shorin on 2023-01-10.
-//
+#include "tests.h"
+#include "command.h"
+
+Describe(command);
+
+BeforeEach(command)
+{
+
+}
+
+AfterEach(command)
+{
+
+}
+
+Ensure(command, parse_command)
+{
+
+}

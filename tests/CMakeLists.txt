@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
+
 set(TEST_HEADER_LIST
         tests.h
         )

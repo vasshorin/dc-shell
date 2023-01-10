@@ -1,4 +1,19 @@
-//
-// Created by Vasily Shorin on 2023-01-10.
-//
+#include "tests.h"
+#include "builtins.h"
 
+Describe(builtin);
+
+BeforeEach(builtin)
+{
+
+}
+
+AfterEach(builtin)
+{
+
+}
+
+Ensure(builtin, parse_command)
+{
+
+}

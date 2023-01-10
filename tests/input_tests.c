@@ -1,4 +1,19 @@
-//
-// Created by Vasily Shorin on 2023-01-10.
-//
+#include "tests.h"
+#include "input.h"
 
+Describe(input);
+
+BeforeEach(input)
+{
+
+}
+
+AfterEach(input)
+{
+
+}
+
+Ensure(input, read_command_line)
+{
+
+}

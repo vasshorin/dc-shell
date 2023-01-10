@@ -1,4 +1,19 @@
-//
-// Created by Vasily Shorin on 2023-01-10.
-//
+#include "tests.h"
+#include "util.h"
 
+Describe(util);
+
+BeforeEach(util)
+{
+
+}
+
+AfterEach()
+{
+
+}
+
+Ensure(util, get_path)
+{
+
+}
