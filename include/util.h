@@ -7,13 +7,15 @@
 
 #include "dc_env/env.h"
 #include "dc_error/error.h"
+#include "dc_posix/dc_stdlib.h"
+#include "dc_c/dc_stdlib.h"
 
 /**
  * Get the prompt to use.
  *
  * @param env the posix environment.
  * @param err the error object.
- * @return PS1 end var or "$" if PS1 is not set.
+ * @return var of the PS1 env var or "$ " if PS1 is not set.
  */
  const char *get_prompt(const struct dc_env *env, struct dc_error *err);
 

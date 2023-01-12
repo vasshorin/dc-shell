@@ -7,6 +7,7 @@
 #include "dc_env/env.h"
 #include "dc_error/error.h"
 #include "stdlib.h"
+#include "stdio.h"
 
 /**
  * Read the command line from the user.

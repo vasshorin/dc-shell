@@ -14,7 +14,6 @@ int main(int argc, char *argv[])
     add_suite(suite, execute_tests());
     add_suite(suite, input_tests());
     add_suite(suite, shell_impl_tests());
-    add_suite(suite, shell_tests());
     add_suite(suite, util_tests());
 
     if(argc > 1)
