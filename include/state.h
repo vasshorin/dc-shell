@@ -6,19 +6,27 @@
 #define DC_SHELL_STATE_H
 
 
-#include <dc_fsm/fsm.h>
+#include <regex.h>
+#include "command.h"
+#include <stdbool.h>
 
-enum shell_state
+/*! \struct state
+*  \brief The state of the shell.
+ *
+ *  The state of the shell.
+ */
+struct state
 {
-    INIT_STATE = DC_FSM_USER_START, // initial state
-    READ_COMMANDS,                  // accept user input
-    SEPARATE_COMMANDS,              // separate the commands
-    PARSE_COMMANDS,                 // parse the commands
-    EXECUTE_COMMANDS,               // execute the commands
-    EXIT,                           // exit the shell
-    RESET_STATE,                    // reset the stae
-    ERROR,                          // handle errors
-    DESTROY_STATE,                  // destroy the state
+    regex_t *in_redirect_regex;  /*!< The regex for in redirection. */
+    regex_t *out_redirect_regex; /*!< The regex for out redirection. */
+    regex_t *err_redirect_regex; /*!< The regex for err redirection. */
+    char **path;                /*!< The PATH env var. */
+    const char *prompt;         /*!< The PS1 env var. */
+    size_t max_line_length;     /*!< The max line length. */
+    char *current_line;         /*!< The current line. */
+    size_t current_line_length; /*!< The current line length. */
+    struct command *command;    /*!< The current command. */
+    bool fatal_error;           /*!< A fatal error has occurred. */
 };
 
 #endif //DC_SHELL_STATE_H
