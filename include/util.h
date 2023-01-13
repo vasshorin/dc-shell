@@ -70,4 +70,6 @@ void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state
 * @param stream the strea to display the state on.
 */
 void *state_to_string(const struct dc_env *env, struct state *state);
+
+
 #endif //DC_SHELL_UTIL_H
