@@ -6,44 +6,23 @@
 #include <dc_c/dc_string.h>
 
 
-const char *get_prompt(const struct dc_env *env, struct dc_error *err) {
-    const char *prompt = dc_getenv(env, "PS1");
-    if (prompt == NULL) {
-        prompt = "$ ";
-    }
-    return prompt;
-}
+char *get_path(const struct dc_env *env, struct dc_error *err) {
+    DC_TRACE(env);
+    char *path = dc_getenv(env, "PATH");
 
-char *get_path(const struct dc_env *env, struct dc_error *err)
-{
-char *path = dc_getenv(env, "PATH");
+    if (path == NULL) {
+        // Get the default path from the system.
+        path = getenv("PATH");
+        if (path == NULL) {
+            path = strdup("/bin:/usr/bin:/usr/local/bin:/usr/local/sbin");
+        } else {
+            path = strdup(path);
+        }
+    }
+
     return path;
 }
 
-//void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state *state)
-//{
-//    DC_TRACE(env);
-//
-//    dc_free(env, state->current_line);
-//    state->current_line = NULL;
-//
-//    if(state->command)
-//    {
-//        dc_free(env, state->command->line);
-//    }
-//#pragma unroll 1
-//    for(size_t i = 0; i < state->command->argc; i++)
-//    {
-//        if(state->command->argv[i])
-//        {
-//            dc_free(env, state->command->argv[i]);
-//        }
-//    }
-//
-//    dc_free(env, state->command->argv);
-//    dc_free(env, state->command);
-//    state->command = NULL;
-//}
 void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state *state) {
     DC_TRACE(env);
 
