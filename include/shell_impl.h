@@ -55,5 +55,45 @@ int reset_state(const struct dc_env *env, struct dc_error *err, void *arg);
  */
 int read_commands(const struct dc_env *env, struct dc_error *err, void *arg);
 
+/**
+ * Parse the command line into separate commands (see parse_commands).
+ *
+ * @param env the posix environment.
+ * @param err the error object.
+ * @param arg the current struct state
+ * @return EXECUTE_COMMANDS or PARSE_ERROR
+ */
+int parse_commands(const struct dc_env *env, struct dc_error *err, void *arg);
+
+/**
+ * Execute the commands (see execute_commands).
+ *
+ * @param env the posix environment.
+ * @param err the error object.
+ * @param arg the current struct state
+ * @return EXIT if(command->command is exit), RESET_STATE or EXECUTE_ERROR
+ */
+int execute_commands(const struct dc_env *env, struct dc_error *err, void *arg);
+
+/**
+ * Handle the exit command (see do_reset_state)
+ *
+ * @param env the posix environment.
+ * @param err the error object.
+ * @param arg the current struct state
+ * @return DESTROY_STATE
+ */
+int do_exit(const struct dc_env *env, struct dc_error *err, void *arg);
+
+
+/**
+ * Print the err->message to stderr and reset the err (see dc_error_reset).
+ *
+ * @param env the posix environment.
+ * @param err the error object.
+ * @param arg the current struct state
+ * @return RESET_STATE or DESTROY_STATE (if state->fatal_error is true)
+ */
+int handle_error(const struct dc_env *env, struct dc_error *err, void *arg);
 
 #endif //DC_SHELL_SHELL_IMPL_H
