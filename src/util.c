@@ -6,6 +6,17 @@
 #include <dc_c/dc_string.h>
 
 
+const char *get_prompt(const struct dc_env *env, struct dc_error *err)
+{
+    DC_TRACE(env);
+
+    const char *prompt = dc_getenv(env, "PS1");
+    if (prompt == NULL) {
+        prompt = "$ ";
+    }
+
+    return prompt;
+}
 char *get_path(const struct dc_env *env, struct dc_error *err) {
     DC_TRACE(env);
     char *path = dc_getenv(env, "PATH");
@@ -22,6 +33,35 @@ char *get_path(const struct dc_env *env, struct dc_error *err) {
 
     return path;
 }
+
+char **parse_path(const struct dc_env *env, struct dc_error *err, const char *path_str)
+{
+    DC_TRACE(env);
+    char **path = NULL;
+    char *path_str_copy = strdup(path_str);
+    char *path_str_copy_ptr = path_str_copy;
+    char *token = NULL;
+    char *state = NULL;
+    size_t path_len = 0;
+    char **list;
+
+    while ((token = strtok_r(path_str_copy_ptr, ":", &state)) != NULL)
+    {
+        path_str_copy_ptr = NULL;
+        path_len++;
+        list = realloc(path, sizeof(char *) * path_len);
+        if (list == NULL)
+        {
+            dc_error_set_reporting(err, "realloc");
+            return NULL;
+        }
+        path = list;
+        path[path_len - 1] = strdup(token);
+    }
+    free(path_str_copy);
+    return path;
+}
+
 
 void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state *state) {
     DC_TRACE(env);

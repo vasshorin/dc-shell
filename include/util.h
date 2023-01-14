@@ -34,7 +34,7 @@ const char *get_prompt(const struct dc_env *env, struct dc_error *err);
 char *get_path(const struct dc_env *env, struct dc_error *err);
 
 /**
-* Separate a path (eg. PATH env var) intp separate directories.
+* Separate a path (eg. PATH env var) into separate directories.
 * Directories are separated with a ':' character.
 * Any directories with ~ converted to the users home directories.
 *
@@ -43,7 +43,7 @@ char *get_path(const struct dc_env *env, struct dc_error *err);
 * @param path_str the string to separate
 * @return the directories that make up the path
 */
-char **parse_path(const struct dc_env *env, struct dc_error *err, char *path_str);
+char **parse_path(const struct dc_env *env, struct dc_error *err, const  char *path_str);
 
 /**
 * Reset the state for the next read, free any dynamically allocated memory.

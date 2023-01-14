@@ -3,6 +3,8 @@
 
 
 static void check_state_reset(const struct dc_env *env, const struct state *state);
+static char **strs_to_array(size_t n, ...);
+static void test_parse_path(const char *path_str, char **dirs);
 
 Describe(util);
 
@@ -71,10 +73,47 @@ Ensure(util, get_path)
 
 Ensure(util, parse_path)
 {
-
+    test_parse_path("", strs_to_array(1, NULL));
+    test_parse_path("a", strs_to_array(2, "a", NULL));
+    test_parse_path("a:b", strs_to_array(3, "a", "b", NULL));
+    test_parse_path("a:b:c", strs_to_array(4, "a", "b", "c", NULL));
+    test_parse_path("a::c", strs_to_array(4, "a", "c", NULL));
 }
 
+static char **strs_to_array(size_t n, ...)
+{
+va_list args;
+    char **array = NULL;
+    char *str;
 
+    va_start(args, n);
+    for (size_t i = 0; i < n; i++)
+    {
+        str = va_arg(args, char *);
+
+        array = realloc(array, sizeof(char *) * (i + 1));
+
+        if (str)
+        {
+            array[i] = strdup(str);
+        }
+    }
+    va_end(args);
+
+    return array;
+}
+
+static void test_parse_path(const char *path_str, char **dirs)
+{
+    char **path_dirs;
+
+    path_dirs = parse_path(environ, error, path_str);
+
+    for (size_t i = 0; dirs[i] && path_dirs[i]; i++)
+    {
+        assert_that(path_dirs[i], is_equal_to_string(dirs[i]));
+    }
+}
 
 Ensure(util, reset_state)
 {
