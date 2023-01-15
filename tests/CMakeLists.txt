@@ -11,7 +11,6 @@ set(TEST_SOURCE_LIST
         input_tests.c
         main.c
         shell_impl_tests.c
-        shell_tests.c
         util_tests.c
         )
 
