@@ -76,7 +76,10 @@ void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state
         dc_free(env, state->current_line);
         state->current_line = NULL;
         state->current_line_length = 0;
+        state->fatal_error = false;
     }
+
+    state->fatal_error = false;
 
     if (state->command) {
         dc_free(env, state->command->line);
@@ -92,6 +95,7 @@ void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state
     }
     state->command = NULL;
 }
+
 
 
 
