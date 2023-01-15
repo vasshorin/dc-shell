@@ -63,13 +63,13 @@ void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state
  void display_state(const struct dc_env *env, struct state *state, FILE *stream);
 
 /**
-* Disp
+* Display the sate values to the given stream.
 *
 * @param env the posix environment.
 * @param state the state to display.
 * @param stream the strea to display the state on.
 */
-void *state_to_string(const struct dc_env *env, struct state *state);
+void *state_to_string(const struct dc_env *env, struct dc_error *err, struct state *state);
 
 
 #endif //DC_SHELL_UTIL_H

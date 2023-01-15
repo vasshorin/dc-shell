@@ -10,13 +10,19 @@ const char *get_prompt(const struct dc_env *env, struct dc_error *err)
 {
     DC_TRACE(env);
 
-    const char *prompt = dc_getenv(env, "PS1");
-    if (prompt == NULL) {
+    const char *prompt;
+
+    if ( (prompt = dc_getenv(env, "PS1")) == NULL) {
         prompt = "$ ";
+    }
+    else
+    {
+        prompt = strdup(prompt);
     }
 
     return prompt;
 }
+
 char *get_path(const struct dc_env *env, struct dc_error *err) {
     DC_TRACE(env);
     char *path = dc_getenv(env, "PATH");
@@ -93,12 +99,11 @@ void display_state(const struct dc_env *env, struct state *state, FILE *stream)
 {
     char *str;
 
-    str = state_to_string(env, state);
     fprintf(stream, "%s", str);
     free(str);
 }
 
-void *state_to_string(const struct dc_env *env, struct state *state)
+void *state_to_string(const struct dc_env *env,struct dc_error *err, struct state *state)
 {
     size_t len;
     char *line;

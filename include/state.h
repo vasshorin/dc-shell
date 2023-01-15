@@ -21,7 +21,7 @@ struct state
     regex_t *out_redirect_regex; /*!< The regex for out redirection. */
     regex_t *err_redirect_regex; /*!< The regex for err redirection. */
     char **path;                /*!< The PATH env var. */
-    const char *prompt;         /*!< The PS1 env var. */
+    char *prompt;               /*!< The PS1 env var. */
     size_t max_line_length;     /*!< The max line length. */
     char *current_line;         /*!< The current line. */
     size_t current_line_length; /*!< The current line length. */

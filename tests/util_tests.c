@@ -3,9 +3,8 @@
 
 
 static void check_state_reset(const struct dc_env *env, const struct state *state);
-static char **strs_to_array(size_t n, ...);
 static void test_parse_path(const char *path_str, char **dirs);
-
+static char **strs_to_array(size_t n, ...);
 Describe(util);
 
 static struct dc_error *error;
@@ -26,6 +25,7 @@ Ensure(util, get_prompt)
 {
     char *prompt;
 
+    dc_unsetenv(environ, error, "PS1");
     prompt = dc_getenv(environ, "PS1");
 
     if(prompt != NULL)
@@ -58,9 +58,7 @@ Ensure(util, get_path)
     };
     char *path;
 
-//    dc_setenv(environ, error, "PATH", NULL, true);
-//    path = get_path(environ, error);
-//    assert_that(path, is_null);
+    dc_unsetenv(environ, error, "PATH");
 
     for (int i = 0; paths[i]; i++)
     {
@@ -184,25 +182,25 @@ Ensure(util, state_to_string)
     state.fatal_error = false;
 
     state.fatal_error = false;
-    str = state_to_string(environ, &state);
+    str = state_to_string(environ,error, &state);
     assert_that(str, is_equal_to_string("current_line = NULL, fatal_error = 0"));
     free(str);
 
     state.current_line = "";
     state.fatal_error = false;
-    str = state_to_string(environ, &state);
+    str = state_to_string(environ,error, &state);
     assert_that(str, is_equal_to_string("current_line = \"\", fatal_error = 0"));
     free(str);
 
     state.current_line = "hello";
     state.fatal_error = false;
-    str = state_to_string(environ, &state);
+    str = state_to_string(environ,error, &state);
     assert_that(str, is_equal_to_string("current_line = \"hello\", fatal_error = 0"));
     free(str);
 
     state.current_line = "world";
     state.fatal_error = true;
-    str = state_to_string(environ, &state);
+    str = state_to_string(environ,error, &state);
     assert_that(str, is_equal_to_string("current_line = \"world\", fatal_error = 1"));
     free(str);
 }

@@ -7,7 +7,9 @@
 
 #include "dc_env/env.h"
 #include "dc_error/error.h"
-
+#include "dc_posix/dc_regex.h"
+#include "state.h"
+#include "shell.h"
 /**
 * Set up the inital state:
 * - in_redirect_regex  "[ \t\f\v]<.*"
