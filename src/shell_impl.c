@@ -84,7 +84,6 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
 {
     DC_TRACE(env);
 
-    // free any dynamically allocated memory in the state object
     struct state *state = (struct state *) arg;
 //    printf("#########DESTROY STATE###########");
 //    printf("Current line %s\n", state->current_line);
@@ -94,44 +93,77 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
     if(state->in_redirect_regex != NULL)
     {
-        printf("Inside in_redirect_regex\n");
+//        printf("Inside in_redirect_regex \n");
         dc_regfree(env, state->in_redirect_regex);
         dc_free(env, state->in_redirect_regex);
+        state->in_redirect_regex = NULL;
     }
+
     if(state->out_redirect_regex != NULL)
     {
-        printf("Inside out_redirect_regex\n");
+//        printf("Inside out_redirect_regex\n");
         dc_regfree(env, state->out_redirect_regex);
         dc_free(env, state->out_redirect_regex);
+        state->out_redirect_regex = NULL;
     }
+
     if(state->err_redirect_regex != NULL)
     {
-        printf("Inside err_redirect_regex\n");
+//        printf("Inside err_redirect_regex\n");
         dc_regfree(env, state->err_redirect_regex);
         dc_free(env, state->err_redirect_regex);
+        state->err_redirect_regex = NULL;
     }
+
     if(state->path != NULL)
     {
-        printf("Inside path\n");
+//        printf("Inside path\n");
         dc_free(env, state->path);
+        state->path = NULL;
     }
+
     if(state->prompt != NULL)
     {
-        printf("Inside prompt %s\n", state->prompt);
-
+//        printf("Inside prompt %s\n", state->prompt);
+        state->prompt = NULL;
 //        dc_free(env, state->prompt);
     }
+
     if(state->current_line != NULL)
     {
-        printf("Inside current line free\n");
+//        printf("Inside current line free\n");
         dc_free(env, state->current_line);
+        state->current_line = NULL;
     }
+
+    if(state->max_line_length != 0)
+    {
+//        printf("Inside max line length free\n");
+        state->max_line_length = 0;
+    }
+
     if(state->command != NULL)
     {
-        printf("Inside command free\n");
+//        printf("Inside command free\n");
         dc_free(env, state->command);
+        state->command = NULL;
+    }
+
+    if(state->fatal_error != false)
+    {
+//        printf("Inside fatal error free\n");
+        state->fatal_error = false;
     }
     return DC_FSM_EXIT;
 
 }
 
+
+int reset_state(const struct dc_env *env, struct dc_error *err, void *arg)
+{
+    DC_TRACE(env);
+    struct state *state = (struct state *) arg;
+    do_reset_state(env, err, state);
+
+    return READ_COMMANDS;
+}

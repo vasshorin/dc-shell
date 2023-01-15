@@ -27,7 +27,7 @@
 int init_state(const struct dc_env *env, struct dc_error *err, void *arg);
 
 /**
-* Free any dynamically allocated memory in the state.
+* Free any dynamically allocated memory in the state and sets variables to NULL, 0 , or false.
 *
 * @param env the posix environment.
 * @param err the error object.
