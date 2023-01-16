@@ -69,10 +69,14 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
         state->prompt = prompt_env;
     }
 
+    state->sin = stdin;
+    state->sout = stdout;
+    state->serr = stderr;
     state->current_line = NULL;
     state->current_line_length = 0;
     state->command = NULL;
     state->fatal_error = false;
+
 //    printf("Current line %s\n", state->current_line);
 //    printf("Current line length %ld\n", state->current_line_length);
 //    printf("Command %s\n", state->command);

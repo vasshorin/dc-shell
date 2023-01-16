@@ -6,9 +6,12 @@
 #define DC_SHELL_INPUT_H
 #include "dc_env/env.h"
 #include "dc_error/error.h"
+#include "dc_c/dc_stdio.h"
+#include "dc_util/strings.h"
+#include <dc_c/dc_string.h>
+#include <dc_posix/dc_stdio.h>
 #include "stdlib.h"
 #include "stdio.h"
-
 /**
  * Read the command line from the user.
  *
@@ -18,5 +21,7 @@
  * @param line_size the maximum line to read.
  * @return the comand lie that the user entered.
  */
- char *read_command_line(const struct dc_env *env, struct dc_error *err, FILE *stream, size_t *line_size);
+char *read_command_line(const struct dc_env *env, struct dc_error *err, FILE *stream, size_t *line_size);
+
+#include "state.h"
 #endif //DC_SHELL_INPUT_H

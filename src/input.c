@@ -2,19 +2,32 @@
 // Created by Vasily Shorin on 2023-01-10.
 //
 
-#include "../include/input.h"
+
+#include <dc_c/dc_stdlib.h>
+#include <string.h>
+#include "input.h"
+
 
 
 char *read_command_line(const struct dc_env *env, struct dc_error *err, FILE *stream, size_t *line_size)
 {
+    DC_TRACE(env);
     char *line = NULL;
     size_t len = 0;
-    ssize_t read = getline(&line, &len, stream);
-    if (read == -1) {
-//        dc_error_set(err, "Failed to read command line");
-        printf("Failed to read command line");
-        return NULL;
+    ssize_t read;
+
+
+    if ((read = dc_getline(env, err, &line, &len, stream)) != -1)
+    {
+        // remove newline character from the end of the string
+        line[dc_strcspn(env, line, "\n")] = 0;
+        dc_str_trim(env,line);
+        *line_size = strlen(line);
     }
-    *line_size = read;
+    else
+    {
+    *line_size = 0;
+    }
+
     return line;
 }

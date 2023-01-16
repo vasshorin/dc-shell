@@ -18,9 +18,9 @@
  */
 struct state
 {
-    FILE *stdin;                 /*!< The standard input stream. */
-    FILE *stdout;                /*!< The standard output stream. */
-    FILE *stderr;                /*!< The standard error stream. */
+    FILE *sin;                   /*!< The standard input stream. */
+    FILE *sout;                  /*!< The standard output stream. */
+    FILE *serr;                  /*!< The standard error stream. */
     regex_t *in_redirect_regex;  /*!< The regex for in redirection. */
     regex_t *out_redirect_regex; /*!< The regex for out redirection. */
     regex_t *err_redirect_regex; /*!< The regex for err redirection. */

@@ -117,9 +117,9 @@ Ensure(util, do_reset_state)
 {
     struct state state;
 
-    state.stdin =  stdin;
-    state.stdout = stdout;
-    state.stderr = stderr;
+    state.sin =  stdin;
+    state.sout = stdout;
+    state.serr = stderr;
     state.in_redirect_regex = NULL;
     state.out_redirect_regex = NULL;
     state.err_redirect_regex = NULL;
@@ -161,10 +161,9 @@ static void check_state_reset(const struct dc_error *error, const struct state *
     assert_that(state->current_line_length, is_equal_to(0));
     assert_that(state->command, is_null);
     assert_false(state->fatal_error);
-    assert_that(state->stdin, is_equal_to(in));
-    assert_that(state->stdout, is_equal_to(out));
-    assert_that(state->stderr, is_equal_to(err));
-
+    assert_that(state->sin, is_equal_to(in));
+    assert_that(state->sout, is_equal_to(out));
+    assert_that(state->serr, is_equal_to(err));
 }
 
 Ensure(util, display_state)
