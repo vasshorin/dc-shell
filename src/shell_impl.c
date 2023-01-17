@@ -74,9 +74,6 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
         state->prompt = strdup(prompt_env);
     }
 
-    state->sin = stdin;
-    state->sout = stdout;
-    state->serr = stderr;
     state->current_line = NULL;
     state->current_line_length = 0;
     state->command = NULL;
@@ -177,7 +174,7 @@ int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     DC_TRACE(env);
     struct state *state = (struct state *) arg;
     char *cwd;
-    char std_out;
+    char output[1024];
 
     // if an error getting the current working directory, set fatal_error to true and return ERROR
     if((cwd = dc_get_working_dir(env, err)) == NULL)
@@ -186,13 +183,10 @@ int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
         state->fatal_error = true;
         return ERROR;
     }
-    //    print “[current working directory] state.prompt” to
-    if(fprintf(state->sout, "[%s] %s", cwd, state->prompt) < 0)
-    {
-        dc_error_set_reporting(err, "fprintf failed");
-        state->fatal_error = true;
-        return ERROR;
-    }
+    //    print “[current working directory] state.prompt” to stdout
+    sprintf(output, "[%s] %s", cwd, state->prompt);
+    fprintf(state->sout, "[%s] %s", cwd, state->prompt);
+
     //    read the input from state.stdin into state.current_line
     if(dc_getline(env, err, &state->current_line, &state->max_line_length, state->sin) < 0)
     {
@@ -200,6 +194,7 @@ int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
         state->fatal_error = true;
         return ERROR;
     }
+
     dc_str_trim(env, state->current_line);
     //    If empty string
     //    return RESET_STATE
@@ -210,4 +205,5 @@ int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     state->current_line_length = strlen(state->current_line);
 
     return SEPARATE_COMMANDS;
+
 }

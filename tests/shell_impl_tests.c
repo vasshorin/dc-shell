@@ -157,8 +157,9 @@ static void test_reset_state(const char* expected_prompt,const bool expected_fat
 
 Ensure(shell_impl, read_commands)
 {
+    test_read_commands("hello", "hello", SEPARATE_COMMANDS);
     test_read_commands("hello\n", "hello", SEPARATE_COMMANDS);
-//    test_read_commands("\n", "", RESET_STATE);
+    test_read_commands("\n", "", RESET_STATE);
 }
 static void test_read_commands(const char *command, const char *expected_command, int expected_return)
 {
@@ -195,8 +196,6 @@ static void test_read_commands(const char *command, const char *expected_command
     free(prompt);
     assert_that(state.current_line, is_equal_to_string(expected_command));
     assert_that(state.current_line_length, is_equal_to(strlen(expected_command)));
-//    read content of out_buf
-
 
 }
 
