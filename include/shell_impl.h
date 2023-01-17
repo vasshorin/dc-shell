@@ -60,6 +60,16 @@ int reset_state(const struct dc_env *env, struct dc_error *err, void *arg);
  */
 int read_commands(const struct dc_env *env, struct dc_error *err, void *arg);
 
+
+/**
+ * Separte the command line into commands (see separate_commands).
+ *
+ * @param env the posix environment.
+ * @param err the error object.
+ * @param arg the current struct state
+ * @return PARSE_COMMANDS or SEPARATE_COMMANDS
+ */
+int separate_commands(const struct dc_env *env, struct dc_error *err, void *arg);
 /**
  * Parse the command line into separate commands (see parse_commands).
  *

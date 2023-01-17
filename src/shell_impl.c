@@ -207,3 +207,33 @@ int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     return SEPARATE_COMMANDS;
 
 }
+
+
+int separate_commands(const struct dc_env *env, struct dc_error *err, void *arg)
+{
+    DC_TRACE(env);
+
+    struct state *state = (struct state *) arg;
+    char *command = state->current_line;
+
+    //If any errors occur
+    //set state.fatal_error to true and return ERROR
+    if(state->fatal_error == true)
+    {
+        return ERROR;
+    }
+    // Copy the state.current_line to the state.command.line
+    state->command = dc_malloc(env,err, sizeof(struct command));
+    // Set all other fields to zero, NULL, or false
+    state->command->line = dc_malloc(env, err, state->current_line_length + 1);
+    dc_strcpy(env, state->command->line, state->current_line);
+    state->command->argc = 0;
+    state->command->argv = NULL;
+    state->command->stdout_overwrite = NULL;
+    state->command->stdin_file= NULL;
+    state->command->stderr_file = NULL;
+    state->command->stdout_file = NULL;
+    state->command->stderr_overwrite = NULL;
+
+    return PARSE_COMMANDS;
+}
