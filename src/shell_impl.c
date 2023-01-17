@@ -4,6 +4,7 @@
 
 #include <unistd.h>
 #include <dc_c/dc_stdlib.h>
+#include <dc_posix/dc_stdio.h>
 #include "shell_impl.h"
 #include "util.h"
 #include "state.h"
@@ -62,11 +63,15 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
     char *prompt_env = dc_getenv(env, "PS1");
     if (prompt_env == NULL)
     {
-        state->prompt = "$ ";
+        state->prompt = strdup("$ ");
     }
     else
     {
-        state->prompt = prompt_env;
+        // state->promt is set to $ + PS1
+//        state->prompt = calloc(1, strlen(prompt_env) + 3);
+//        strcat(state->prompt, "$ ");
+//        strcat(state->prompt, prompt_env);
+        state->prompt = strdup(prompt_env);
     }
 
     state->sin = stdin;
@@ -97,7 +102,6 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
     if(state->in_redirect_regex != NULL)
     {
-//        printf("Inside in_redirect_regex \n");
         dc_regfree(env, state->in_redirect_regex);
         dc_free(env, state->in_redirect_regex);
         state->in_redirect_regex = NULL;
@@ -105,7 +109,6 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
     if(state->out_redirect_regex != NULL)
     {
-//        printf("Inside out_redirect_regex\n");
         dc_regfree(env, state->out_redirect_regex);
         dc_free(env, state->out_redirect_regex);
         state->out_redirect_regex = NULL;
@@ -113,7 +116,6 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
     if(state->err_redirect_regex != NULL)
     {
-//        printf("Inside err_redirect_regex\n");
         dc_regfree(env, state->err_redirect_regex);
         dc_free(env, state->err_redirect_regex);
         state->err_redirect_regex = NULL;
@@ -121,21 +123,18 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
     if(state->path != NULL)
     {
-//        printf("Inside path\n");
         dc_free(env, state->path);
         state->path = NULL;
     }
 
     if(state->prompt != NULL)
     {
-//        printf("Inside prompt %s\n", state->prompt);
         state->prompt = NULL;
 //        dc_free(env, state->prompt);
     }
 
     if(state->current_line != NULL)
     {
-//        printf("Inside current line free\n");
         dc_free(env, state->current_line);
         state->current_line = NULL;
     }
@@ -170,4 +169,45 @@ int reset_state(const struct dc_env *env, struct dc_error *err, void *arg)
     do_reset_state(env, err, state);
 
     return READ_COMMANDS;
+}
+
+
+int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
+{
+    DC_TRACE(env);
+    struct state *state = (struct state *) arg;
+    char *cwd;
+    char std_out;
+
+    // if an error getting the current working directory, set fatal_error to true and return ERROR
+    if((cwd = dc_get_working_dir(env, err)) == NULL)
+    {
+        dc_error_set_reporting(err, "getcwd failed");
+        state->fatal_error = true;
+        return ERROR;
+    }
+    //    print “[current working directory] state.prompt” to
+    if(fprintf(state->sout, "[%s] %s", cwd, state->prompt) < 0)
+    {
+        dc_error_set_reporting(err, "fprintf failed");
+        state->fatal_error = true;
+        return ERROR;
+    }
+    //    read the input from state.stdin into state.current_line
+    if(dc_getline(env, err, &state->current_line, &state->max_line_length, state->sin) < 0)
+    {
+        dc_error_set_reporting(err, "getline failed");
+        state->fatal_error = true;
+        return ERROR;
+    }
+    dc_str_trim(env, state->current_line);
+    //    If empty string
+    //    return RESET_STATE
+    if(state->current_line[0] == '\0')
+    {
+        return RESET_STATE;
+    }
+    state->current_line_length = strlen(state->current_line);
+
+    return SEPARATE_COMMANDS;
 }

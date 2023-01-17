@@ -15,11 +15,8 @@ char *read_command_line(const struct dc_env *env, struct dc_error *err, FILE *st
     char *line = NULL;
     size_t len = 0;
 
-
     if ((dc_getline(env, err, &line, &len, stream)) != -1)
     {
-        // remove newline character from the end of the string
-        line[dc_strcspn(env, line, "\n")] = 0;
         dc_str_trim(env,line);
         *line_size = strlen(line);
     }

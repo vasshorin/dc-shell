@@ -9,6 +9,7 @@
 static void test_init_state(const char *expected_prompt, FILE *in, FILE *out, FILE *err);
 static void test_destroy_state(const bool *expected_fatal);
 static void test_reset_state(const char *expected_prompt, bool expected_fatal);
+static void test_read_commands(const char *command, const char *expected_command, int expected_return);
 Describe(shell_impl);
 
 
@@ -156,6 +157,46 @@ static void test_reset_state(const char* expected_prompt,const bool expected_fat
 
 Ensure(shell_impl, read_commands)
 {
+    test_read_commands("hello\n", "hello", SEPARATE_COMMANDS);
+//    test_read_commands("\n", "", RESET_STATE);
+}
+static void test_read_commands(const char *command, const char *expected_command, int expected_return)
+{
+
+    char *in_buf;
+    char out_buf[1024];
+    FILE *in;
+    FILE *out;
+    struct state state;
+    int next_state;
+    char *cwd;
+    char *prompt;
+
+    in_buf = strdup(command);
+    in = fmemopen(in_buf, strlen(in_buf) + 1, "r");
+    out = fmemopen(out_buf, sizeof(out_buf ), "w");
+    state.sin = in;
+    state.sout = out;
+    state.serr = stderr;
+    dc_unsetenv(environ, error, "PS1");
+    next_state = init_state(environ, error, &state);
+    assert_false(dc_error_has_error(error));
+    assert_false(state.fatal_error);
+    assert_that(next_state, is_equal_to(READ_COMMANDS));
+    next_state = read_commands(environ, error, &state);
+    assert_that(next_state, is_equal_to(expected_return));
+    assert_false(dc_error_has_error(error));
+    cwd = dc_get_working_dir(environ, error);
+    // [current working directory]$ state.prompt
+    prompt = malloc(1 + strlen(cwd) + 1 + 2 + strlen(state.prompt) + 1);
+    sprintf(prompt, "[%s] %s", cwd, state.prompt);
+    assert_that(out_buf, is_equal_to_string(prompt));
+    free(cwd);
+    free(prompt);
+    assert_that(state.current_line, is_equal_to_string(expected_command));
+    assert_that(state.current_line_length, is_equal_to(strlen(expected_command)));
+//    read content of out_buf
+
 
 }
 

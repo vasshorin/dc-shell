@@ -7,7 +7,10 @@
 
 #include "dc_env/env.h"
 #include "dc_error/error.h"
+#include "dc_c/dc_stdio.h"
 #include "dc_posix/dc_regex.h"
+#include "dc_posix/dc_unistd.h"
+#include "dc_util/filesystem.h"
 #include "state.h"
 #include "shell.h"
 /**
