@@ -11,6 +11,8 @@ static void test_destroy_state(const bool *expected_fatal);
 static void test_reset_state(const char *expected_prompt, bool expected_fatal);
 static void test_read_commands(const char *command, const char *expected_command, int expected_return);
 static void test_separate_commands(const char *command, const char *expected_command, int expected_return);
+static void test_parse_commands(const char *command, char *expected_command, size_t expected_argc);
+
 Describe(shell_impl);
 
 
@@ -202,7 +204,7 @@ static void test_read_commands(const char *command, const char *expected_command
 Ensure(shell_impl, separate_commands)
 {
     test_separate_commands("./a.out", "./a.out", SEPARATE_COMMANDS);
-    test_separate_commands("cd ~\n", "cd ~", SEPARATE_COMMANDS);
+    test_separate_commands("cd ~", "cd ~", SEPARATE_COMMANDS);
     test_separate_commands("\n", "", RESET_STATE);
 }
 
@@ -257,7 +259,46 @@ static void test_separate_commands(const char *command, const char *expected_com
 
 Ensure(shell_impl, parse_commands)
 {
+    test_parse_commands("hello\n", "hello", 1);
+    test_parse_commands("./a.out a b c ", "./a.out", 4);
+}
 
+static void test_parse_commands(const char *command, char *expected_command, size_t expected_argc)
+{
+    char *in_buf;
+    char out_buf[1024];
+    FILE *in;
+    FILE *out;
+    struct state state;
+    int next_state;
+
+    in_buf = strdup(command);
+    in = fmemopen(in_buf, strlen(in_buf) + 1, "r");
+    out = fmemopen(out_buf, sizeof(out_buf ), "w");
+    state.sin = in;
+    state.sout = out;
+    state.serr = stderr;
+    dc_unsetenv(environ, error, "PS1");
+
+    next_state = init_state(environ, error, &state);
+    assert_false(dc_error_has_error(error));
+    assert_false(state.fatal_error);
+    assert_that(next_state, is_equal_to(READ_COMMANDS));
+
+    next_state = read_commands(environ, error, &state);
+    assert_that(next_state, is_equal_to(SEPARATE_COMMANDS));
+    assert_false(dc_error_has_error(error));
+
+    next_state = separate_commands(environ, error, &state);
+    assert_that(next_state, is_equal_to(PARSE_COMMANDS));
+
+    next_state = parse_commands(environ, error, &state);
+    assert_that(next_state, is_equal_to(EXECUTE_COMMANDS));
+
+    assert_that(state.command->command, is_equal_to_string(expected_command));
+    assert_that(state.command->argc, is_equal_to(expected_argc));
+
+    destroy_state(environ, error, &state);
 }
 
 Ensure(shell_impl, execute_commands)
@@ -265,9 +306,29 @@ Ensure(shell_impl, execute_commands)
 
 }
 
-Ensure(shell_impl, do_exit)
+
+static void test_execute_command()
 {
 
+}
+
+Ensure(shell_impl, do_exit)
+{
+    struct state state;
+    int next_state;
+
+    next_state = init_state(environ, error, &state);
+    assert_false(dc_error_has_error(error));
+    assert_false(state.fatal_error);
+    assert_that(next_state, is_equal_to(READ_COMMANDS));
+    state.current_line_length = 10;
+    next_state = do_exit(environ, error,&state);
+    assert_false(dc_error_has_error(error));
+    assert_false(state.fatal_error);
+    assert_that(next_state, is_equal_to(DESTROY_STATE));
+    assert_that(state.current_line_length, is_equal_to(0));
+
+    destroy_state(environ, error, &state);
 }
 
 Ensure(shell_impl, handle_error)

@@ -78,7 +78,7 @@ int separate_commands(const struct dc_env *env, struct dc_error *err, void *arg)
  * @param arg the current struct state
  * @return EXECUTE_COMMANDS or PARSE_ERROR
  */
-int parse_commands(const struct dc_env *env, struct dc_error *err, void *arg);
+int parse_commands(struct dc_env *env, struct dc_error *err, void *arg);
 
 /**
  * Execute the commands (see execute_commands).

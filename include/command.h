@@ -6,18 +6,21 @@
 #define DC_SHELL_COMMAND_H
 #include "dc_error/error.h"
 #include "dc_env/env.h"
+#include <dc_posix/dc_regex.h>
+#include <dc_posix/dc_wordexp.h>
 #include "state.h"
+#include "shell.h"
 
 struct command
 {
-    char *line;             // the current command line
-    char *command;          // the program/builtin to run
-    size_t argc;            // the number of arguments
-    char **argv;            // the arguments to the command
-    char *stdin_file;       // the file to redirect stdin to
-    char *stdout_file;      // the file to redirect stdout to
-    bool stdout_overwrite;  // append or overwrite the stdout file (true = overwrite)
-    char *stderr_file;      // the file to redirect stderr to
+    char *line;                  // the current command line
+    char *command;               // the program/builtin to run
+    size_t argc;                 // the number of arguments
+    char **argv;                 // the arguments to the command, arg[0] must be NULL
+    char *stdin_file;            // the file to redirect stdin to
+    char *stdout_file;           // the file to redirect stdout to
+    bool stdout_overwrite;       // append or overwrite the stdout file (true = overwrite)
+    char *stderr_file;           // the file to redirect stderr to
     bool stderr_overwrite;       // append or overwrite the stderr file (true = overwrite)
     int exit_code;
 };
@@ -31,4 +34,6 @@ struct command
  * @param command the command to parse.
  */
  void parse_command(struct dc_env *env, struct dc_error *err, struct state *state, struct command *command);
+
+ void destroy_command(struct dc_env *env, struct command *command);
 #endif //DC_SHELL_COMMAND_H

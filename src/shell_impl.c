@@ -25,7 +25,7 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
     }
 
     state->in_redirect_regex = calloc(1, sizeof(regex_t));
-    if (regcomp(state->in_redirect_regex, "[ \t\f\v]<.*", REG_EXTENDED) != 0)
+    if (regcomp(state->in_redirect_regex, "([ \t\f\v]<.*)", REG_EXTENDED) != 0)
     {
         dc_error_set_reporting(err, "regcomp for in_redirect_regex failed");
         state->fatal_error = true;
@@ -33,7 +33,7 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
     }
 
     state->out_redirect_regex = calloc(1, sizeof(regex_t));
-    if (regcomp(state->out_redirect_regex, "[ \t\f\v][1^2]?>[>]?.*", REG_EXTENDED) != 0)
+    if (regcomp(state->out_redirect_regex, "([ \t\f\v][1^2]?>[>]?.*)", REG_EXTENDED) != 0)
     {
         dc_error_set_reporting(err, "regcomp for out_redirect_regex failed");
         state->fatal_error = true;
@@ -41,9 +41,17 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
     }
 
     state->err_redirect_regex = calloc(1, sizeof(regex_t));
-    if (regcomp(state->err_redirect_regex, "[ \t\f\v]2>[>]?.*", REG_EXTENDED) != 0)
+    if (regcomp(state->err_redirect_regex, "([ \t\f\v]2>>?)([ \t\f\v].*)"
+            , REG_EXTENDED) != 0)
     {
         dc_error_set_reporting(err, "regcomp for err_redirect_regex failed");
+        state->fatal_error = true;
+        return ERROR;
+    }
+    state->command_regex = calloc(1, sizeof(regex_t));
+    if (regcomp(state->command_regex, "\"([^<>]*).*\"", REG_EXTENDED) != 0)
+    {
+        dc_error_set_reporting(err, "regcomp for command_regex failed");
         state->fatal_error = true;
         return ERROR;
     }
@@ -223,17 +231,42 @@ int separate_commands(const struct dc_env *env, struct dc_error *err, void *arg)
         return ERROR;
     }
     // Copy the state.current_line to the state.command.line
-    state->command = dc_malloc(env,err, sizeof(struct command));
+    state->command = dc_calloc(env,err, 1, sizeof(struct command));
     // Set all other fields to zero, NULL, or false
     state->command->line = dc_malloc(env, err, state->current_line_length + 1);
     dc_strcpy(env, state->command->line, state->current_line);
     state->command->argc = 0;
     state->command->argv = NULL;
-    state->command->stdout_overwrite = NULL;
+    state->command->stdout_overwrite = false;
     state->command->stdin_file= NULL;
     state->command->stderr_file = NULL;
     state->command->stdout_file = NULL;
-    state->command->stderr_overwrite = NULL;
+    state->command->stderr_overwrite = false;
 
     return PARSE_COMMANDS;
+}
+
+
+int parse_commands(struct dc_env *env, struct dc_error *err, void *arg)
+{
+    DC_TRACE(env);
+    struct state *state = (struct state * ) arg;
+    struct command *command = state->command;
+    parse_command(env, err, state, command);
+    if(state->fatal_error == true)
+    {
+        return ERROR;
+    }
+
+    return EXECUTE_COMMANDS;
+}
+
+
+int do_exit(const struct dc_env *env, struct dc_error *err, void *arg)
+{
+//    Call do_reset_state()
+    struct state *state = (struct state *) arg;
+    do_reset_state(env, err, state);
+
+    return DESTROY_STATE;
 }

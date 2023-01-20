@@ -72,14 +72,11 @@ char **parse_path(const struct dc_env *env, struct dc_error *err, const char *pa
 void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state *state) {
     DC_TRACE(env);
 
-    if (state->current_line) {
-        dc_free(env, state->current_line);
-        state->current_line = NULL;
-        state->current_line_length = 0;
-        state->fatal_error = false;
-    }
-
+    dc_free(env, state->current_line);
+    state->current_line = NULL;
+    state->current_line_length = 0;
     state->fatal_error = false;
+
 
     if (state->command) {
         dc_free(env, state->command->line);
@@ -95,9 +92,6 @@ void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state
     }
     state->command = NULL;
 }
-
-
-
 
 void display_state(const struct dc_env *env, struct state *state, FILE *stream)
 {
@@ -121,7 +115,6 @@ void *state_to_string(const struct dc_env *env,struct dc_error *err, struct stat
         len = strlen("current line = \"\"");
         len += state->current_line_length;
     }
-
 
     len += strlen(", fatal_error = ");
     // + 1 for 0 or 1 for the fatal_error + 1 for the null byte
