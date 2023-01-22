@@ -51,7 +51,7 @@ char **parse_path(const struct dc_env *env, struct dc_error *err, const  char *p
 * @param env the posix environment.
 * @param err the error object.
 */
-void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state *state);
+int do_reset_state(const struct dc_env *env, struct dc_error *err, struct state *state);
 
 /**
  * Displays the state values to the given stream.

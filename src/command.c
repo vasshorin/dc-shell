@@ -27,7 +27,7 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
     regmatch_t match[2];
     int status;
     comm = strdup(command->line);
-    printf("Parsing command: %s\n", comm);
+//    printf("Parsing command: %s\n", comm);
     // get the command name
     char *command_name = strtok(comm, " \t\f\v");
 
@@ -38,8 +38,8 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
         char *subexpression = strndup(state->command->line + match[0].rm_so, match[0].rm_eo - match[0].rm_so);
         char *operator = strtok(subexpression, " ");
         char *file_path = strtok(NULL, " ");
-        printf("Operator: %s\n", operator);
-        printf("ERR File path: %s\n", file_path);
+//        printf("Operator: %s\n", operator);
+//        printf("ERR File path: %s\n", file_path);
         if (!strcmp(operator, "2>>")) {
             command->stderr_overwrite = false;
         } else if (!strcmp(operator, "2>")) {
@@ -47,7 +47,7 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
         }
         command->stderr_file = strdup(file_path);
         expand_path(env, err, file_path, &command->stderr_file);
-        printf("Expanded ERR file path: %s\n", command->stderr_file);
+//        printf("Expanded ERR file path: %s\n", command->stderr_file);
         free(subexpression);
     } else {
         command->stderr_file = NULL;
@@ -59,8 +59,8 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
         char *subexpression = strndup(state->command->line + match[0].rm_so, match[0].rm_eo - match[0].rm_so);
         char *operator = strtok(subexpression, " ");
         char *file_path = strtok(NULL, " ");
-        printf("Operator: %s\n", operator);
-        printf("OUT File path: %s\n", file_path);
+//        printf("Operator: %s\n", operator);
+//        printf("OUT File path: %s\n", file_path);
         if (!strcmp(operator, ">>")) {
             command->stdout_overwrite = false;
         } else if (!strcmp(operator, ">")) {
@@ -68,7 +68,7 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
         }
         command->stdout_file = strdup(file_path);
         expand_path(env, err, file_path, &command->stdout_file);
-        printf("Expanded path: %s\n", command->stdout_file);
+//        printf("Expanded path: %s\n", command->stdout_file);
         free(subexpression);
     } else {
         command->stdout_file = NULL;
@@ -80,8 +80,8 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
         char *subexpression = strndup(state->command->line + match[0].rm_so, match[0].rm_eo - match[0].rm_so);
         char *operator = strtok(subexpression, " ");
         char *file_path = strtok(NULL, " ");
-        printf("Operator: %s\n", operator);
-        printf("IN File path: %s\n", file_path);
+//        printf("Operator: %s\n", operator);
+//        printf("IN File path: %s\n", file_path);
         command->stdin_file = strdup(file_path);
         if(command->stdin_file)
         {
@@ -105,7 +105,7 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
         j++;
     }
     args[j] = '\0';
-    printf("\t\tnew string is %s\n", args);
+//    printf("new string is %s\n", args);
 
     wordexp_t we;
     int ret = dc_wordexp(env, err, args, &we, 0);
@@ -148,7 +148,7 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
     }
     command->argc = num_args;
 //    state->command->argc = result.we_wordc;
-    printf("argc: %zu\n", state->command->argc);
+//    printf("argc: %zu\n", state->command->argc);
     // Allocate memory for argv
     state->command->argv = dc_calloc(env, err, state->command->argc + 2, sizeof(char *) );
     if (state->command->argv == NULL) {
@@ -158,11 +158,11 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
     // Copy the arguments to argv
     for (size_t i = 1; i < state->command->argc; i++) {
         state->command->argv[i] = strdup(we.we_wordv[i]);
-        printf("argv[%d]: %s\n", i, state->command->argv[i]);
+//        printf("argv[%d]: %s\n", i, state->command->argv[i]);
     }
     // Set the command name
     state->command->command = strdup(we.we_wordv[0]);
-    printf("command: %s\n", state->command->command);
+//    printf("command: %s\n", state->command->command);
     // Set argv[argc + 1] to NULL
     state->command->argv[state->command->argc + 1] = NULL;
     // Free the wordexp result

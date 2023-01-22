@@ -70,30 +70,32 @@ char **parse_path(const struct dc_env *env, struct dc_error *err, const char *pa
     return path;
 }
 
-
-void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state *state) {
-    DC_TRACE(env);
-
-    dc_free(env, state->current_line);
-    state->current_line = NULL;
-    state->current_line_length = 0;
-    state->fatal_error = false;
-
-
-    if (state->command != NULL) {
-        dc_free(env, state->command->line);
-        dc_free(env, state->command->command);
-        dc_free(env, state->command->stdin_file);
-        dc_free(env, state->command->stdout_file);
-        dc_free(env, state->command->stderr_file);
-        for (size_t i = 0; i < state->command->argc; i++) {
-            dc_free(env, state->command->argv[i]);
-        }
-        dc_free(env, state->command->argv);
-        dc_free(env, state->command);
-    }
-    state->command = NULL;
-}
+//
+//int do_reset_state(const struct dc_env *env, struct dc_error *err, struct state *state) {
+//    DC_TRACE(env);
+//
+//    dc_free(env, state->current_line);
+//    state->current_line = NULL;
+//    state->current_line_length = 0;
+//    state->fatal_error = false;
+//
+//
+//    if (state->command != NULL) {
+//        dc_free(env, state->command->line);
+//        dc_free(env, state->command->command);
+//        dc_free(env, state->command->stdin_file);
+//        dc_free(env, state->command->stdout_file);
+//        dc_free(env, state->command->stderr_file);
+//        for (size_t i = 0; i < state->command->argc; i++) {
+//            dc_free(env, state->command->argv[i]);
+//        }
+//        dc_free(env, state->command->argv);
+//        dc_free(env, state->command);
+//    }
+//    state->command = NULL;
+//
+//    return READ_COMMANDS;
+//}
 
 
 void command_destroy(struct command *command)

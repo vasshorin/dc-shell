@@ -163,7 +163,27 @@ int reset_state(const struct dc_env *env, struct dc_error *err, void *arg)
 {
     DC_TRACE(env);
     struct state *state = (struct state *) arg;
-    do_reset_state(env, err, state);
+//    int ret_val = 0;
+//    return do_reset_state(env, err, state);
+    dc_free(env, state->current_line);
+    state->current_line = NULL;
+    state->current_line_length = 0;
+    state->fatal_error = false;
+
+
+    if (state->command != NULL) {
+        dc_free(env, state->command->line);
+        dc_free(env, state->command->command);
+        dc_free(env, state->command->stdin_file);
+        dc_free(env, state->command->stdout_file);
+        dc_free(env, state->command->stderr_file);
+        for (size_t i = 0; i < state->command->argc; i++) {
+            dc_free(env, state->command->argv[i]);
+        }
+        dc_free(env, state->command->argv);
+        dc_free(env, state->command);
+    }
+    state->command = NULL;
 
     return READ_COMMANDS;
 }
@@ -171,7 +191,7 @@ int reset_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
 int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
 {
-    printf("WENT INTO READ COMMANDS\n");
+//    printf("WENT INTO READ COMMANDS\n");
     DC_TRACE(env);
     struct state *state = (struct state *) arg;
     char *cwd;
@@ -256,10 +276,10 @@ int execute_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     struct command *command = state->command;
     //    if state.command.command is “cd”
     //call builtin_cd()
-    printf("execute command->command %s\n", command->command);
+//    printf("execute command->command %s\n", command->command);
     if(command->command != NULL && dc_strcmp(env, command->command, "cd") == 0)
     {
-     printf("WENT INTO BUILTIN_CD\n");
+//     printf("WENT INTO BUILTIN_CD\n");
         builtin_cd(env, err, command, stderr);
     //otherwise, if state.command.command is “exit”
     //return EXIT
@@ -271,10 +291,10 @@ int execute_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     }
     else
     {
-        printf("went past exit\n");
+//        printf("went past exit\n");
         //otherwise, call execute()
         execute(env, err, command, *state->path);
-        printf("executed\n");
+//        printf("executed\n");
         if(state->fatal_error == true)
         {
             //	If execute has an error set state.fatal_error to true
@@ -291,7 +311,7 @@ int do_exit(const struct dc_env *env, struct dc_error *err, void *arg)
 {
 //    Call do_reset_state()
     struct state *state = (struct state *) arg;
-    do_reset_state(env, err, state);
+    reset_state(env, err, state);
 
     return DESTROY_STATE;
 }
