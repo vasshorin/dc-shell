@@ -5,6 +5,7 @@
 #ifndef DC_SHELL_SHELL_H
 #define DC_SHELL_SHELL_H
 #include <dc_fsm/fsm.h>
+#include <stdio.h>
 #include "dc_env/env.h"
 #include "dc_error/error.h"
 
@@ -24,8 +25,13 @@ enum shell_state
 /**
  * Run the shell FSM.
  *
+ *
  * @param env the posix environment
+ * @param err the error object
+ * @param in the stream to read from
+ * @param out the keaboard stdout file
+ * @param err the keyboard stderr file
  */
-int run_shell(const struct dc_env *env, struct dc_error *err);
+int run_shell(const struct dc_env *env, struct dc_error *err, FILE *in, FILE *out, FILE *err_out);
 
 #endif //DC_SHELL_SHELL_H

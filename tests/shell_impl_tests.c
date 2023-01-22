@@ -12,6 +12,7 @@ static void test_reset_state(const char *expected_prompt, bool expected_fatal);
 static void test_read_commands(const char *command, const char *expected_command, int expected_return);
 static void test_separate_commands(const char *command, const char *expected_command, int expected_return);
 static void test_parse_commands(const char *command, char *expected_command, size_t expected_argc);
+static void test_execute_command(const char *command, int expected_next_state);
 
 Describe(shell_impl);
 
@@ -303,13 +304,57 @@ static void test_parse_commands(const char *command, char *expected_command, siz
 
 Ensure(shell_impl, execute_commands)
 {
+    char *previous_working_dir;
+    char *current_working_dir;
+
+
+    test_execute_command("exit", EXIT);
+    previous_working_dir = dc_get_working_dir(environ, error);
+//    test_execute_command("cd /", RESET_STATE);
+//    current_working_dir = dc_get_working_dir(environ, error);
+//    assert_that(current_working_dir, is_equal_to_string(""));
+
 
 }
 
 
-static void test_execute_command()
+static void test_execute_command(const char *command, int expected_next_state)
 {
 
+    char *in_buf;
+    char out_buf[1024];
+    FILE *in;
+    FILE *out;
+    struct state state;
+    int next_state;
+
+    in_buf = strdup(command);
+    in = fmemopen(in_buf, strlen(in_buf) + 1, "r");
+    out = fmemopen(out_buf, sizeof(out_buf ), "w");
+    state.sin = in;
+    state.sout = out;
+    state.serr = stderr;
+    dc_unsetenv(environ, error, "PS1");
+
+    next_state = init_state(environ, error, &state);
+    assert_false(dc_error_has_error(error));
+    assert_false(state.fatal_error);
+    assert_that(next_state, is_equal_to(READ_COMMANDS));
+
+    next_state = read_commands(environ, error, &state);
+    assert_that(next_state, is_equal_to(SEPARATE_COMMANDS));
+    assert_false(dc_error_has_error(error));
+
+    next_state = separate_commands(environ, error, &state);
+    assert_that(next_state, is_equal_to(PARSE_COMMANDS));
+
+    next_state = parse_commands(environ, error, &state);
+    assert_that(next_state, is_equal_to(EXECUTE_COMMANDS));
+
+    next_state = execute_commands(environ, error, &state);
+    assert_that(next_state, is_equal_to(RESET_STATE));
+
+    destroy_state(environ, error, &state);
 }
 
 Ensure(shell_impl, do_exit)

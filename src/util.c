@@ -6,6 +6,8 @@
 #include <dc_c/dc_string.h>
 
 
+void command_destroy(struct command *command);
+
 const char *get_prompt(const struct dc_env *env, struct dc_error *err)
 {
     DC_TRACE(env);
@@ -78,7 +80,7 @@ void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state
     state->fatal_error = false;
 
 
-    if (state->command) {
+    if (state->command != NULL) {
         dc_free(env, state->command->line);
         dc_free(env, state->command->command);
         dc_free(env, state->command->stdin_file);
@@ -91,6 +93,44 @@ void do_reset_state(const struct dc_env *env, struct dc_error *err, struct state
         dc_free(env, state->command);
     }
     state->command = NULL;
+}
+
+
+void command_destroy(struct command *command)
+{
+    if (command->command != NULL)
+    {
+        free(command->command);
+        command->command = NULL;
+    }
+    if (command->argv != NULL)
+    {
+        free(command->argv);
+        command->argv = NULL;
+    }
+    if (command->line != NULL)
+    {
+        free(command->line);
+        command->line = NULL;
+    }
+    if (command->stdout_file != NULL)
+    {
+        free(command->stdout_file);
+        command->stdout_file= NULL;
+    }
+    if (command->stdin_file != NULL)
+    {
+        free(command->stdin_file);
+        command->stderr_file = NULL;
+    }
+    if (command->stderr_file != NULL)
+    {
+        free(command->stderr_file);
+        command->stderr_file = NULL;
+    }
+
+    free(command);
+
 }
 
 void display_state(const struct dc_env *env, struct state *state, FILE *stream)

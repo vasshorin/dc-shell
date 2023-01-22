@@ -33,7 +33,7 @@ struct command
  * @param state the current state, to set the fatal_error and access the command line and regex for redirection
  * @param command the command to parse.
  */
- void parse_command(struct dc_env *env, struct dc_error *err, struct state *state, struct command *command);
+ void parse_command(const struct dc_env *env, struct dc_error *err, struct state *state, struct command *command);
 
  void destroy_command(struct dc_env *env, struct command *command);
 #endif //DC_SHELL_COMMAND_H

@@ -8,22 +8,32 @@
 #include "shell_impl.h"
 #include "util.h"
 #include "state.h"
+#include "builtins.h"
+#include "execute.h"
 
 
 int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
 {
     DC_TRACE(env);
-//    printf("Shell impl - PS1 value : %s\n", dc_getenv(env, "PS1"));
     struct state *state = (struct state *) arg;
-
-    state->max_line_length = sysconf(_SC_ARG_MAX);
-    if (state->max_line_length < 0)
+    dc_memset(env, state, 0, sizeof(struct state));
+    if(dc_error_has_error(err))
     {
-        dc_error_set_reporting(err, "sysconf(_SC_ARG_MAX) failed");
         state->fatal_error = true;
         return ERROR;
     }
-
+    long max_line = 0;
+    max_line = dc_sysconf(env, err, _SC_ARG_MAX);
+    if(dc_error_has_no_error(err))
+    {
+        state->max_line_length = (size_t)max_line;
+    }
+    if(state->max_line_length < 0)
+    {
+        DC_ERROR_RAISE_SYSTEM(err, "Blah blah", 1);
+        state->fatal_error = true;
+        return ERROR;
+    }
     state->in_redirect_regex = calloc(1, sizeof(regex_t));
     if (regcomp(state->in_redirect_regex, "([ \t\f\v]<.*)", REG_EXTENDED) != 0)
     {
@@ -31,7 +41,6 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
         state->fatal_error = true;
         return ERROR;
     }
-
     state->out_redirect_regex = calloc(1, sizeof(regex_t));
     if (regcomp(state->out_redirect_regex, "([ \t\f\v][1^2]?>[>]?.*)", REG_EXTENDED) != 0)
     {
@@ -39,7 +48,6 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
         state->fatal_error = true;
         return ERROR;
     }
-
     state->err_redirect_regex = calloc(1, sizeof(regex_t));
     if (regcomp(state->err_redirect_regex, "([ \t\f\v]2>>?)([ \t\f\v].*)"
             , REG_EXTENDED) != 0)
@@ -55,7 +63,6 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
         state->fatal_error = true;
         return ERROR;
     }
-
     char *path_env = dc_getenv(env, "PATH");
     if (path_env == NULL)
     {
@@ -67,7 +74,6 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
     {
         state->path = parse_path(env, err, path_env);
     }
-
     char *prompt_env = dc_getenv(env, "PS1");
     if (prompt_env == NULL)
     {
@@ -75,22 +81,16 @@ int init_state(const struct dc_env *env, struct dc_error *err, void *arg)
     }
     else
     {
-        // state->promt is set to $ + PS1
-//        state->prompt = calloc(1, strlen(prompt_env) + 3);
-//        strcat(state->prompt, "$ ");
-//        strcat(state->prompt, prompt_env);
         state->prompt = strdup(prompt_env);
     }
-
     state->current_line = NULL;
     state->current_line_length = 0;
     state->command = NULL;
     state->fatal_error = false;
+    state->sout = stdout;
+    state->sin = stdin;
+    state->serr = stderr;
 
-//    printf("Current line %s\n", state->current_line);
-//    printf("Current line length %ld\n", state->current_line_length);
-//    printf("Command %s\n", state->command);
-//    printf("Prompt %s\n", state->prompt);
     return READ_COMMANDS;
 }
 
@@ -99,11 +99,6 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
     DC_TRACE(env);
 
     struct state *state = (struct state *) arg;
-//    printf("#########DESTROY STATE###########");
-//    printf("Current line %s\n", state->current_line);
-//    printf("Current line length %ld\n", state->current_line_length);
-//    printf("Command %s\n", state->command);
-//    printf("Prompt %s\n", state->prompt);
 
     if(state->in_redirect_regex != NULL)
     {
@@ -135,7 +130,7 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
     if(state->prompt != NULL)
     {
         state->prompt = NULL;
-//        dc_free(env, state->prompt);
+        dc_free(env, state->prompt);
     }
 
     if(state->current_line != NULL)
@@ -146,20 +141,17 @@ int destroy_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
     if(state->max_line_length != 0)
     {
-//        printf("Inside max line length free\n");
         state->max_line_length = 0;
     }
 
     if(state->command != NULL)
     {
-//        printf("Inside command free\n");
         dc_free(env, state->command);
         state->command = NULL;
     }
 
     if(state->fatal_error != false)
     {
-//        printf("Inside fatal error free\n");
         state->fatal_error = false;
     }
     return DC_FSM_EXIT;
@@ -179,33 +171,30 @@ int reset_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
 int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
 {
+    printf("WENT INTO READ COMMANDS\n");
     DC_TRACE(env);
     struct state *state = (struct state *) arg;
     char *cwd;
-    char output[1024];
 
     // if an error getting the current working directory, set fatal_error to true and return ERROR
     if((cwd = dc_get_working_dir(env, err)) == NULL)
     {
-        dc_error_set_reporting(err, "getcwd failed");
+        DC_ERROR_RAISE_SYSTEM(err, "getcwd failed", 1);
         state->fatal_error = true;
         return ERROR;
     }
     //    print “[current working directory] state.prompt” to stdout
-    sprintf(output, "[%s] %s", cwd, state->prompt);
     fprintf(state->sout, "[%s] %s", cwd, state->prompt);
 
     //    read the input from state.stdin into state.current_line
     if(dc_getline(env, err, &state->current_line, &state->max_line_length, state->sin) < 0)
     {
-        dc_error_set_reporting(err, "getline failed");
+        DC_ERROR_RAISE_SYSTEM(err, "get_line failed\n", 1);
         state->fatal_error = true;
         return ERROR;
     }
 
     dc_str_trim(env, state->current_line);
-    //    If empty string
-    //    return RESET_STATE
     if(state->current_line[0] == '\0')
     {
         return RESET_STATE;
@@ -222,7 +211,6 @@ int separate_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     DC_TRACE(env);
 
     struct state *state = (struct state *) arg;
-    char *command = state->current_line;
 
     //If any errors occur
     //set state.fatal_error to true and return ERROR
@@ -233,7 +221,7 @@ int separate_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     // Copy the state.current_line to the state.command.line
     state->command = dc_calloc(env,err, 1, sizeof(struct command));
     // Set all other fields to zero, NULL, or false
-    state->command->line = dc_malloc(env, err, state->current_line_length + 1);
+    state->command->line = dc_calloc(env, err, state->current_line_length, sizeof(char*));
     dc_strcpy(env, state->command->line, state->current_line);
     state->command->argc = 0;
     state->command->argv = NULL;
@@ -247,10 +235,10 @@ int separate_commands(const struct dc_env *env, struct dc_error *err, void *arg)
 }
 
 
-int parse_commands(struct dc_env *env, struct dc_error *err, void *arg)
+int parse_commands(const struct dc_env *env, struct dc_error *err, void *arg)
 {
     DC_TRACE(env);
-    struct state *state = (struct state * ) arg;
+    struct state *state = (struct state *) arg;
     struct command *command = state->command;
     parse_command(env, err, state, command);
     if(state->fatal_error == true)
@@ -261,6 +249,43 @@ int parse_commands(struct dc_env *env, struct dc_error *err, void *arg)
     return EXECUTE_COMMANDS;
 }
 
+int execute_commands(const struct dc_env *env, struct dc_error *err, void *arg)
+{
+    DC_TRACE(env);
+    struct state *state = (struct state *) arg;
+    struct command *command = state->command;
+    //    if state.command.command is “cd”
+    //call builtin_cd()
+    printf("execute command->command %s\n", command->command);
+    if(command->command != NULL && dc_strcmp(env, command->command, "cd") == 0)
+    {
+     printf("WENT INTO BUILTIN_CD\n");
+        builtin_cd(env, err, command, stderr);
+    //otherwise, if state.command.command is “exit”
+    //return EXIT
+    }
+    else if (command->command != NULL && dc_strcmp(env, command->command, "exit") == 0)
+    {
+        printf("going into exit\n");
+        return EXIT;
+    }
+    else
+    {
+        printf("went past exit\n");
+        //otherwise, call execute()
+        execute(env, err, command, *state->path);
+        printf("executed\n");
+        if(state->fatal_error == true)
+        {
+            //	If execute has an error set state.fatal_error to true
+            //print the state.command.exit_code to stdout
+            fprintf(stderr, "Error: %d", command->exit_code);
+            return ERROR;
+        }
+    }
+    return RESET_STATE;
+}
+
 
 int do_exit(const struct dc_env *env, struct dc_error *err, void *arg)
 {
@@ -269,4 +294,25 @@ int do_exit(const struct dc_env *env, struct dc_error *err, void *arg)
     do_reset_state(env, err, state);
 
     return DESTROY_STATE;
+}
+
+
+int handle_error(const struct dc_env *env, struct dc_error *err, void *arg) {
+    DC_TRACE(env);
+    struct state *state = (struct state *) arg;
+    if(state->current_line == NULL)
+    {
+        fprintf(state->sout, "Internal error %d error", dc_errno_get_errno(err));
+    }
+    else
+    {
+        fprintf(state->sout, "Internal error %d error message: %s", dc_errno_get_errno(err), state->current_line);
+    }
+
+    if(state->fatal_error)
+    {
+        return DESTROY_STATE;
+    }
+
+    return RESET_STATE;
 }

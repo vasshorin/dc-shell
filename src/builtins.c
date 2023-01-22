@@ -17,6 +17,8 @@ void builtin_cd(const struct dc_env *env, struct dc_error *err, struct command *
     char *dir = NULL;
 
     // Check if command->argv[1] is NULL and set path to "~/" if it is
+    printf("Command->argv[0] = %s\n", command->argv[0]);
+    printf("command->argv[1] = %s\n", command->argv[1]);
     if (command->argv[1] == NULL)
     {
         dir = strdup("~/");
@@ -28,7 +30,7 @@ void builtin_cd(const struct dc_env *env, struct dc_error *err, struct command *
     dc_expand_path(env, err, &path, dir);
 
     // Call chdir
-    if (chdir(path) != 0)
+    if (dc_chdir(env, err, path) != 0)
     {
         // Handle chdir errors
         switch (errno)
@@ -59,6 +61,7 @@ void builtin_cd(const struct dc_env *env, struct dc_error *err, struct command *
                 break;
         }
     }
+    printf("Exit code %d", command->exit_code);
     command->exit_code = exit_code;
     // Clean up
     free(dir);
