@@ -163,27 +163,7 @@ int reset_state(const struct dc_env *env, struct dc_error *err, void *arg)
 {
     DC_TRACE(env);
     struct state *state = (struct state *) arg;
-//    int ret_val = 0;
-//    return do_reset_state(env, err, state);
-    dc_free(env, state->current_line);
-    state->current_line = NULL;
-    state->current_line_length = 0;
-    state->fatal_error = false;
-
-
-    if (state->command != NULL) {
-        dc_free(env, state->command->line);
-        dc_free(env, state->command->command);
-        dc_free(env, state->command->stdin_file);
-        dc_free(env, state->command->stdout_file);
-        dc_free(env, state->command->stderr_file);
-        for (size_t i = 0; i < state->command->argc; i++) {
-            dc_free(env, state->command->argv[i]);
-        }
-        dc_free(env, state->command->argv);
-        dc_free(env, state->command);
-    }
-    state->command = NULL;
+    do_reset_state(env, err, state);
 
     return READ_COMMANDS;
 }
@@ -191,22 +171,18 @@ int reset_state(const struct dc_env *env, struct dc_error *err, void *arg)
 
 int read_commands(const struct dc_env *env, struct dc_error *err, void *arg)
 {
-//    printf("WENT INTO READ COMMANDS\n");
     DC_TRACE(env);
     struct state *state = (struct state *) arg;
     char *cwd;
 
-    // if an error getting the current working directory, set fatal_error to true and return ERROR
     if((cwd = dc_get_working_dir(env, err)) == NULL)
     {
         DC_ERROR_RAISE_SYSTEM(err, "getcwd failed", 1);
         state->fatal_error = true;
         return ERROR;
     }
-    //    print “[current working directory] state.prompt” to stdout
     fprintf(state->sout, "[%s] %s", cwd, state->prompt);
 
-    //    read the input from state.stdin into state.current_line
     if(dc_getline(env, err, &state->current_line, &state->max_line_length, state->sin) < 0)
     {
         DC_ERROR_RAISE_SYSTEM(err, "get_line failed\n", 1);
@@ -232,15 +208,11 @@ int separate_commands(const struct dc_env *env, struct dc_error *err, void *arg)
 
     struct state *state = (struct state *) arg;
 
-    //If any errors occur
-    //set state.fatal_error to true and return ERROR
     if(state->fatal_error == true)
     {
         return ERROR;
     }
-    // Copy the state.current_line to the state.command.line
     state->command = dc_calloc(env,err, 1, sizeof(struct command));
-    // Set all other fields to zero, NULL, or false
     state->command->line = dc_calloc(env, err, state->current_line_length, sizeof(char*));
     dc_strcpy(env, state->command->line, state->current_line);
     state->command->argc = 0;
@@ -274,15 +246,9 @@ int execute_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     DC_TRACE(env);
     struct state *state = (struct state *) arg;
     struct command *command = state->command;
-    //    if state.command.command is “cd”
-    //call builtin_cd()
-//    printf("execute command->command %s\n", command->command);
     if(command->command != NULL && dc_strcmp(env, command->command, "cd") == 0)
     {
-//     printf("WENT INTO BUILTIN_CD\n");
         builtin_cd(env, err, command, stderr);
-    //otherwise, if state.command.command is “exit”
-    //return EXIT
     }
     else if (command->command != NULL && dc_strcmp(env, command->command, "exit") == 0)
     {
@@ -291,14 +257,9 @@ int execute_commands(const struct dc_env *env, struct dc_error *err, void *arg)
     }
     else
     {
-//        printf("went past exit\n");
-        //otherwise, call execute()
         execute(env, err, command, *state->path);
-//        printf("executed\n");
         if(state->fatal_error == true)
         {
-            //	If execute has an error set state.fatal_error to true
-            //print the state.command.exit_code to stdout
             fprintf(stderr, "Error: %d", command->exit_code);
             return ERROR;
         }
@@ -311,7 +272,7 @@ int do_exit(const struct dc_env *env, struct dc_error *err, void *arg)
 {
 //    Call do_reset_state()
     struct state *state = (struct state *) arg;
-    reset_state(env, err, state);
+    do_reset_state(env, err, state);
 
     return DESTROY_STATE;
 }
