@@ -16,7 +16,7 @@
 #define REDIRECT_ERR 3
 
 
-static void expand_path(struct dc_env *env, struct dc_error *err,const char *expected_file, char **expanded_file);
+static void expand_path(const struct dc_env *env, struct dc_error *err,const char *expected_file, char **expanded_file);
 
 
 void parse_command(const struct dc_env *env, struct dc_error *err, struct state *state, struct command *command)
@@ -68,6 +68,7 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
     if (status == 0)
     {
         char *subexpression = strndup(state->command->line + match[0].rm_so, match[0].rm_eo - match[0].rm_so);
+        char *operator = strtok(subexpression, " ");
         char *file_path = strtok(NULL, " ");
         command->stdin_file = strdup(file_path);
         if(command->stdin_file)
@@ -96,8 +97,10 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
     wordexp_t we;
     int ret = dc_wordexp(env, err, args, &we, 0);
     state->command->argc = we.we_wordc;
-    if (ret != 0) {
-        switch (ret) {
+    if (ret != 0)
+    {
+        switch (ret)
+        {
             case WRDE_BADCHAR:
                 printf("Error: Illegal occurrence of newline or one of |, &, ;, <, >, (, ), {, }\n");
                 break;
@@ -141,7 +144,7 @@ void parse_command(const struct dc_env *env, struct dc_error *err, struct state 
     free(comm);
 }
 
-static void expand_path(struct dc_env *env, struct dc_error *err,const char *expected_file, char **expanded_file)
+static void expand_path(const struct dc_env *env, struct dc_error *err,const char *expected_file, char **expanded_file)
 {
     if(expected_file == NULL)
     {

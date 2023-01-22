@@ -23,33 +23,33 @@ void builtin_cd(const struct dc_env *env, struct dc_error *err, struct command *
         dir = strdup(command->argv[1]);
     }
     dc_expand_path(env, err, &path, dir);
-
-    if (dc_chdir(env, err, path) != 0)
+    int result = chdir(path);
+    if (result != 0)
     {
         switch (errno)
         {
             case EACCES:
-                fprintf(stderr, "EACCES: %s: %s\n", path, strerror(errno));
+                printf("cd: %s: Permission denied\n", path);
                 exit_code = 1;
                 break;
             case ELOOP:
-                printf("ELOOP: %s: %s\n", path, strerror(errno));
+                printf("cd: %s: Too many symbolic links\n", path);
                 exit_code = 1;
                 break;
             case ENAMETOOLONG:
-                printf("ENAMETOOLONG: %s: %s\n", path, strerror(errno));
+                printf("cd: %s: File name too long\n", path);
                 exit_code = 1;
                 break;
             case ENOENT:
-                fprintf(stderr, "ENOENT: %s: %s\n", path, strerror(errno));
+                printf("cd: %s: No such file or directory\n", path);
                 exit_code = 1;
                 break;
             case ENOTDIR:
-                printf("ENOTDIR: %s: %s\n", path, strerror(errno));
+                printf("cd: %s: Not a directory\n", path);
                 exit_code = 1;
                 break;
             default:
-                dc_error_set_reporting(err, "Unknown error in builtin_cd");
+                printf("cd: %s: Unknown error\n", path);
                 exit_code = 1;
                 break;
         }

@@ -264,6 +264,11 @@ int execute_commands(const struct dc_env *env, struct dc_error *err, void *arg)
             return ERROR;
         }
     }
+    if(state->fatal_error == true)
+    {
+        return ERROR;
+    }
+    fprintf(stdout, "%d\n", command->exit_code);
     return RESET_STATE;
 }
 

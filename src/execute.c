@@ -85,7 +85,8 @@ static void run (struct command *command, char *path)
         execv(command->command, command->argv);
     } else {
         if (path == NULL) {
-            printf("Command not found: %s\n", command->command);
+            printf("No path variable set");
+            command->exit_code = 127;
             exit(127);
         } else {
             char *cmd = malloc(strlen(path) + strlen(command->command) + 2);
